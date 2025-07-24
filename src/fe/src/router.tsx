@@ -9,9 +9,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
-import { lazy } from "react";
-
-const HomeRedirect = lazy(() => import("./pages/HomeRedirect"));
+import DashboardPage from "./pages/DashboardPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -46,7 +44,7 @@ const dashboardLayoutRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: "/",
-  component: HomeRedirect,
+  component: DashboardPage,
 });
 
 const profileRoute = createRoute({
