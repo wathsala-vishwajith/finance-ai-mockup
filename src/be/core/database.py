@@ -41,7 +41,7 @@ async def seed_db():
             return
             
         # Create demo user with secure password
-        demo_pwd = pwd_context.hash("SecureDemo123!")
+        demo_pwd = pwd_context.hash("123456")
         demo_user = User(
             username="demo", 
             email="demo@example.com",

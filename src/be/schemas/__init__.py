@@ -35,6 +35,17 @@ class UserLoginRequest(BaseModel):
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
 
+# Chat WebSocket Models
+class ChatMessageIn(BaseModel):
+    message: str = Field(min_length=1, max_length=1000)
+    timestamp: Optional[datetime] = None
+
+class ChatMessageOut(BaseModel):
+    message: str
+    sender: str  # "user" or "assistant"
+    timestamp: datetime
+    is_complete: bool = True  # For streaming responses
+
 # Chart WebSocket Models
 class ChartSubscribe(BaseModel):
     interval_ms: Optional[int] = Field(default=2000, ge=500, le=60000)
@@ -47,6 +58,12 @@ class ChartDataPoint(BaseModel):
 class LineChartData(BaseModel):
     timestamp: datetime
     data_points: list[float]
+
+class LineChartPoint(BaseModel):
+    """Single point data for animated line charts"""
+    timestamp: datetime
+    value: float
+    index: int  # Time progression index (increments with each interval)
 
 class PieChartSlice(BaseModel):
     label: str
@@ -99,9 +116,12 @@ __all__ = [
     "UserRegisterRequest",
     "UserLoginRequest",
     "TokenRefreshRequest",
+    "ChatMessageIn",
+    "ChatMessageOut",
     "ChartSubscribe",
     "ChartDataPoint",
     "LineChartData",
+    "LineChartPoint",
     "PieChartSlice",
     "PieChartData",
     "BarChartBar",

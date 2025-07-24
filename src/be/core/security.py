@@ -55,9 +55,12 @@ def verify_token(token: str, expected_type: str = "access") -> Optional[dict]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         token_type = payload.get("type")
         if token_type != expected_type:
+            print(f"Token type mismatch: expected {expected_type}, got {token_type}")
             return None
+        print(f"Token verified successfully for user: {payload.get('username')}")
         return payload
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {e}")
         return None
 
 

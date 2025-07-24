@@ -46,7 +46,7 @@ def test_demo_user_login():
     url = f"{BASE_URL}/auth/login"
     data = {
         "username": "demo",
-        "password": "SecureDemo123!"
+        "password": "123456"
     }
     
     response = requests.post(url, json=data)

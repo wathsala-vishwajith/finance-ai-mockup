@@ -12,6 +12,7 @@ from be.core.security import verify_token
 from be.schemas import (
     ChartSubscribe,
     LineChartData,
+    LineChartPoint,
     PieChartData,
     PieChartSlice,
     BarChartData,
@@ -30,6 +31,12 @@ chart_connections: Dict[str, Set[WebSocket]] = {
 # Store intervals for each connection
 connection_intervals: Dict[WebSocket, int] = {}
 
+# Store line chart point index for each connection (for smooth animation)
+line_chart_counters: Dict[WebSocket, int] = {}
+
+# Store connection start times for time-based X-axis
+connection_start_times: Dict[WebSocket, datetime] = {}
+
 # Default chart labels and colors
 PIE_CHART_LABELS = ["Technology", "Healthcare", "Finance", "Energy", "Consumer"]
 PIE_CHART_COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
@@ -41,24 +48,64 @@ BAR_CHART_COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
 async def authenticate_websocket(websocket: WebSocket, token: str) -> bool:
     """Authenticate WebSocket connection using JWT token"""
     if not token:
+        print("WebSocket auth failed: No token provided")
         return False
     
-    payload = verify_token(token, "access")
-    if not payload:
+    try:
+        payload = verify_token(token, "access")
+        if not payload:
+            print("WebSocket auth failed: Invalid token")
+            return False
+        
+        print(f"WebSocket auth successful for user: {payload.get('username')}")
+        return True
+    except Exception as e:
+        print(f"WebSocket auth error: {e}")
         return False
+
+
+def generate_line_chart_point(websocket: WebSocket) -> LineChartPoint:
+    """Generate a single time-based data point for line chart"""
+    current_time = datetime.utcnow()
     
-    # Store user info in websocket state for potential future use
-    websocket.state.user_id = payload.get("sub")
-    websocket.state.username = payload.get("username")
-    return True
-
-
-def generate_line_chart_data() -> LineChartData:
-    """Generate random data for line chart (5 data points)"""
-    data_points = [random.uniform(10, 100) for _ in range(5)]
-    return LineChartData(
-        timestamp=datetime.utcnow(),
-        data_points=data_points
+    # Initialize connection data if this is the first point
+    if websocket not in connection_start_times:
+        connection_start_times[websocket] = current_time
+        line_chart_counters[websocket] = 0
+    
+    # Get the interval for this connection (default 2000ms)
+    interval_ms = connection_intervals.get(websocket, 2000)
+    
+    # Calculate time index based on elapsed time and interval
+    start_time = connection_start_times[websocket]
+    elapsed_ms = (current_time - start_time).total_seconds() * 1000
+    time_index = int(elapsed_ms / interval_ms)
+    
+    # Update counter to match calculated time index
+    line_chart_counters[websocket] = time_index
+    
+    # Generate simple positive random values for Y-axis
+    # Use time-based seed for slight consistency but with randomness
+    import random
+    import math
+    
+    # Create a smooth base trend with time progression
+    time_factor = time_index * 0.1
+    base_trend = 50 + math.sin(time_factor * 0.05) * 20  # Slow sine wave trend
+    
+    # Add some controlled randomness
+    random_variation = random.uniform(-15, 15)
+    
+    # Combine for final value
+    value = base_trend + random_variation
+    
+    # Ensure value stays positive and within reasonable bounds
+    value = max(5, min(95, value))
+    
+    return LineChartPoint(
+        timestamp=current_time,
+        value=round(value, 2),
+        index=time_index
     )
 
 
@@ -114,7 +161,7 @@ async def send_chart_data(websocket: WebSocket, chart_type: str):
     """Send chart data based on chart type"""
     try:
         if chart_type == "line":
-            data = generate_line_chart_data()
+            data = generate_line_chart_point(websocket)
         elif chart_type == "pie":
             data = generate_pie_chart_data()
         elif chart_type == "bar":
@@ -140,9 +187,12 @@ async def connection_data_sender(websocket: WebSocket, chart_type: str):
     except Exception as e:
         print(f"Error in data sender for websocket: {e}")
     finally:
-        # Clean up connection
+        # Clean up connection data
         chart_connections[chart_type].discard(websocket)
         connection_intervals.pop(websocket, None)
+        # Clean up line chart counter and start time for this connection
+        line_chart_counters.pop(websocket, None)
+        connection_start_times.pop(websocket, None)
 
 
 @router.websocket("/ws/{chart_type}")
@@ -155,15 +205,19 @@ async def websocket_chart_endpoint(
     
     # Validate chart type
     if chart_type not in ["line", "pie", "bar"]:
+        print(f"Invalid chart type: {chart_type}")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
     
-    # Authenticate the connection
-    if not await authenticate_websocket(websocket, token):
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-    
+    print(f"Accepting WebSocket connection for chart type: {chart_type}")
     await websocket.accept()
+    
+    # Authenticate the connection AFTER accepting
+    print(f"Authenticating WebSocket connection for chart type: {chart_type}")
+    if not await authenticate_websocket(websocket, token):
+        print(f"Authentication failed for token: {token[:20]}..." if token else "No token")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     
     # Add connection to active connections
     chart_connections[chart_type].add(websocket)
@@ -214,9 +268,12 @@ async def websocket_chart_endpoint(
         except asyncio.CancelledError:
             pass
         
-        # Clean up connection
+        # Clean up connection data
         chart_connections[chart_type].discard(websocket)
         connection_intervals.pop(websocket, None)
+        # Clean up line chart counter and start time for this connection  
+        line_chart_counters.pop(websocket, None)
+        connection_start_times.pop(websocket, None)
 
 
 @router.get("/types")

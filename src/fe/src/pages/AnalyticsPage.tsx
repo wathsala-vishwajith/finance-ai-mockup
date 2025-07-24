@@ -4,7 +4,8 @@ import { CreateChartDialog, ChartConfig } from '../components/CreateChartDialog'
 import { LineChart } from '../components/charts/LineChart';
 import { PieChart } from '../components/charts/PieChart';
 import { BarChart } from '../components/charts/BarChart';
-import { useChartWebSocket, LineChartData, PieChartData, BarChartData } from '../hooks/useChartWebSocket';
+import { useChartWebSocket, AccumulatedLineData, PieChartData, BarChartData } from '../hooks/useChartWebSocket';
+import { useAuth } from '../context/AuthContext';
 
 interface Chart extends ChartConfig {
   id: string;
@@ -13,14 +14,12 @@ interface Chart extends ChartConfig {
 
 const ChartWrapper: React.FC<{
   chart: Chart;
-  token: string;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onIntervalChange: (id: string, intervalMs: number) => void;
-}> = ({ chart, token, onToggle, onDelete, onIntervalChange }) => {
+}> = ({ chart, onToggle, onDelete, onIntervalChange }) => {
   const { data, isConnected, isConnecting, error, setInterval } = useChartWebSocket({
     chartType: chart.type,
-    token,
     intervalMs: chart.intervalMs,
     enabled: chart.isActive,
   });
@@ -33,7 +32,7 @@ const ChartWrapper: React.FC<{
   const renderChart = () => {
     switch (chart.type) {
       case 'line':
-        return <LineChart data={data as LineChartData} width={500} height={300} />;
+        return <LineChart data={data as AccumulatedLineData} width={500} height={300} />;
       case 'pie':
         return <PieChart data={data as PieChartData} width={400} height={400} />;
       case 'bar':
@@ -41,6 +40,19 @@ const ChartWrapper: React.FC<{
       default:
         return null;
     }
+  };
+
+  const getStatusColor = () => {
+    if (isConnecting) return 'bg-yellow-500 animate-pulse';
+    if (isConnected) return 'bg-green-500';
+    return 'bg-red-500';
+  };
+
+  const getStatusText = () => {
+    if (isConnecting) return 'Connecting...';
+    if (isConnected) return 'Connected';
+    if (error?.includes('reconnecting in')) return error;
+    return 'Disconnected';
   };
 
   return (
@@ -59,13 +71,9 @@ const ChartWrapper: React.FC<{
         <div className="flex items-center gap-2">
           {/* Connection Status */}
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              isConnecting ? 'bg-yellow-500' : 
-              isConnected ? 'bg-green-500' : 
-              'bg-red-500'
-            }`} />
+            <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {isConnecting ? 'Connecting...' : isConnected ? 'Connected' : 'Disconnected'}
+              {getStatusText()}
             </span>
           </div>
           
@@ -74,6 +82,7 @@ const ChartWrapper: React.FC<{
             value={chart.intervalMs}
             onChange={(e) => handleIntervalChange(parseInt(e.target.value))}
             className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            disabled={!isConnected}
           >
             <option value={500}>0.5s</option>
             <option value={1000}>1s</option>
@@ -86,7 +95,7 @@ const ChartWrapper: React.FC<{
           {/* Toggle Active */}
           <button
             onClick={() => onToggle(chart.id)}
-            className={`p-2 rounded-md ${
+            className={`p-2 rounded-md transition-colors ${
               chart.isActive
                 ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                 : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -99,7 +108,7 @@ const ChartWrapper: React.FC<{
           {/* Delete Chart */}
           <button
             onClick={() => onDelete(chart.id)}
-            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
+            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
             title="Delete chart"
           >
             <TrashIcon className="h-4 w-4" />
@@ -108,16 +117,37 @@ const ChartWrapper: React.FC<{
       </div>
       
       {/* Error Display */}
-      {error && (
+      {error && !error.includes('reconnecting in') && !error.includes('refreshing') && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
           <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+        </div>
+      )}
+
+      {/* Reconnecting Display */}
+      {(error?.includes('reconnecting in') || error?.includes('refreshing')) && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-yellow-700 dark:text-yellow-400">{error}</p>
+          </div>
         </div>
       )}
       
       {/* Chart Content */}
       <div className="flex justify-center">
         {chart.isActive ? (
-          renderChart()
+          <div className="relative">
+            {renderChart()}
+            {/* Loading overlay when connecting */}
+            {isConnecting && (
+              <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center rounded-lg">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm">Connecting...</span>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <p className="text-gray-500 dark:text-gray-400">Chart paused</p>
@@ -131,9 +161,7 @@ const ChartWrapper: React.FC<{
 const AnalyticsPage: React.FC = () => {
   const [charts, setCharts] = useState<Chart[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  // Mock token - in real app, get from auth context
-  const token = localStorage.getItem('access_token') || '';
+  const { accessToken } = useAuth();
 
   const handleCreateChart = (config: Omit<ChartConfig, 'id'>) => {
     const newChart: Chart = {
@@ -161,23 +189,30 @@ const AnalyticsPage: React.FC = () => {
     ));
   };
 
+  if (!accessToken) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 dark:text-gray-400">Please log in to view charts</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Create and manage real-time charts for your data visualization needs
+            Real-time data visualization and monitoring
           </p>
         </div>
-        
         <button
           onClick={() => setIsDialogOpen(true)}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 gap-2"
         >
           <PlusIcon className="h-5 w-5" />
-          New Chart
+          Create Chart
         </button>
       </div>
 
@@ -207,7 +242,6 @@ const AnalyticsPage: React.FC = () => {
             <ChartWrapper
               key={chart.id}
               chart={chart}
-              token={token}
               onToggle={handleToggleChart}
               onDelete={handleDeleteChart}
               onIntervalChange={handleIntervalChange}

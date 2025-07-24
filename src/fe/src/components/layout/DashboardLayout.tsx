@@ -5,6 +5,7 @@ import {
   Bars3Icon,
   BellIcon,
   ChartBarIcon,
+  ChatBubbleLeftRightIcon,
   HomeIcon,
   UserIcon,
   CogIcon,
@@ -14,6 +15,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, current: false },
+  { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon, current: false },
   { name: 'Profile', href: '/profile', icon: UserIcon, current: false },
   { name: 'Settings', href: '/settings', icon: CogIcon, current: false },
 ];

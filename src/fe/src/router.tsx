@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import ChatPage from "./pages/ChatPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -60,9 +61,15 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 });
 
+const chatRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/chat",
+  component: ChatPage,
+});
+
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([loginRoute, registerRoute]),
-  dashboardLayoutRoute.addChildren([indexRoute, profileRoute, analyticsRoute])
+  dashboardLayoutRoute.addChildren([indexRoute, profileRoute, analyticsRoute, chatRoute])
 ]);
 
 export const router = createRouter({
