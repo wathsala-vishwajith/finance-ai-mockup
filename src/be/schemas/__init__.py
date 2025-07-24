@@ -35,6 +35,37 @@ class UserLoginRequest(BaseModel):
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
 
+# Chart WebSocket Models
+class ChartSubscribe(BaseModel):
+    interval_ms: Optional[int] = Field(default=2000, ge=500, le=60000)
+
+class ChartDataPoint(BaseModel):
+    timestamp: datetime
+    value: float
+    label: Optional[str] = None
+
+class LineChartData(BaseModel):
+    timestamp: datetime
+    data_points: list[float]
+
+class PieChartSlice(BaseModel):
+    label: str
+    value: float
+    color: Optional[str] = None
+
+class PieChartData(BaseModel):
+    timestamp: datetime
+    slices: list[PieChartSlice]
+
+class BarChartBar(BaseModel):
+    label: str
+    value: float
+    color: Optional[str] = None
+
+class BarChartData(BaseModel):
+    timestamp: datetime
+    bars: list[BarChartBar]
+
 # Response Models
 class UserOut(BaseModel):
     id: int
@@ -68,6 +99,13 @@ __all__ = [
     "UserRegisterRequest",
     "UserLoginRequest",
     "TokenRefreshRequest",
+    "ChartSubscribe",
+    "ChartDataPoint",
+    "LineChartData",
+    "PieChartSlice",
+    "PieChartData",
+    "BarChartBar",
+    "BarChartData",
     "UserOut",
     "TokenResponse",
     "UserProfileResponse",
