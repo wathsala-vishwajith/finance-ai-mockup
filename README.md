@@ -1,6 +1,7 @@
 # Finance AI Mockup
 
 A full-stack finance application mockup with React frontend and FastAPI backend.
+Quick MVP with Cursor.
 
 ## Features
 
