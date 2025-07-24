@@ -34,34 +34,38 @@ export default function ProfilePage() {
     enabled: !!accessToken
   });
 
-  if (isLoading) return <p className="text-gray-700 dark:text-gray-300">Loading…</p>;
+  if (isLoading) return <p className="text-gray-700">Loading…</p>;
   if (error) return <p className="text-red-500">Failed to load profile.</p>;
 
   const { user } = data!;
 
   return (
-    <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-        User Profile
-      </h1>
-      <div className="space-y-2 text-gray-800 dark:text-gray-200">
-        <p>
-          <span className="font-medium">Username:</span> {user.username}
-        </p>
-        <p>
-          <span className="font-medium">Email:</span> {user.email}
-        </p>
-        {user.full_name && (
+    <div className="bg-white shadow rounded-lg">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          User Profile
+        </h1>
+      </div>
+      <div className="px-6 py-4">
+        <div className="space-y-4 text-gray-800">
           <p>
-            <span className="font-medium">Full Name:</span> {user.full_name}
+            <span className="font-medium">Username:</span> {user.username}
           </p>
-        )}
-        <p>
-          <span className="font-medium">Joined:</span> {new Date(user.created_at).toLocaleDateString()}
-        </p>
-        <p>
-          <span className="font-medium">Active:</span> {user.is_active ? "Yes" : "No"}
-        </p>
+          <p>
+            <span className="font-medium">Email:</span> {user.email}
+          </p>
+          {user.full_name && (
+            <p>
+              <span className="font-medium">Full Name:</span> {user.full_name}
+            </p>
+          )}
+          <p>
+            <span className="font-medium">Joined:</span> {new Date(user.created_at).toLocaleDateString()}
+          </p>
+          <p>
+            <span className="font-medium">Active:</span> {user.is_active ? "Yes" : "No"}
+          </p>
+        </div>
       </div>
     </div>
   );

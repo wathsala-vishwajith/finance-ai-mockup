@@ -44,14 +44,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-        Register
+    <div className="w-full">
+      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
+        Create your account
       </h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
         <div>
           <label
-            className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium mb-2 text-gray-700"
             htmlFor="username"
           >
             Username
@@ -60,12 +60,14 @@ export default function RegisterPage() {
             id="username"
             name="username"
             type="text"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Enter your username"
           />
         </div>
         <div>
           <label
-            className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium mb-2 text-gray-700"
             htmlFor="email"
           >
             Email
@@ -74,12 +76,14 @@ export default function RegisterPage() {
             id="email"
             name="email"
             type="email"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Enter your email"
           />
         </div>
         <div>
           <label
-            className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium mb-2 text-gray-700"
             htmlFor="password"
           >
             Password
@@ -88,12 +92,14 @@ export default function RegisterPage() {
             id="password"
             name="password"
             type="password"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Enter your password"
           />
         </div>
         <div>
           <label
-            className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium mb-2 text-gray-700"
             htmlFor="full_name"
           >
             Full Name (optional)
@@ -102,28 +108,32 @@ export default function RegisterPage() {
             id="full_name"
             name="full_name"
             type="text"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Enter your full name"
           />
         </div>
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded focus:outline-none"
+          className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-150 ease-in-out"
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "Registering..." : "Register"}
+          {mutation.isPending ? "Creating account..." : "Create account"}
         </button>
         {mutation.isError && (
-          <p className="text-red-500 text-sm">{(mutation.error as any).message}</p>
+          <p className="text-red-600 text-sm mt-2">{(mutation.error as any).message}</p>
         )}
         {mutation.isSuccess && (
-          <p className="text-green-600 text-sm">
+          <p className="text-green-600 text-sm mt-2">
             Registration successful! Redirecting to login…
           </p>
         )}
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-        Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
+      <p className="mt-6 text-center text-sm text-gray-600">
+        Already have an account?{' '}
+        <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          Sign in
+        </Link>
       </p>
     </div>
   );
