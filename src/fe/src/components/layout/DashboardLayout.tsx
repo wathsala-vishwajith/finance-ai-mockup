@@ -6,6 +6,7 @@ import {
   BellIcon,
   ChartBarIcon,
   ChatBubbleLeftRightIcon,
+  TableCellsIcon,
   HomeIcon,
   UserIcon,
   CogIcon,
@@ -16,7 +17,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, current: false },
   { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon, current: false },
-  { name: 'Profile', href: '/profile', icon: UserIcon, current: false },
+  { name: 'Data', href: '/data', icon: TableCellsIcon, current: false },
   { name: 'Settings', href: '/settings', icon: CogIcon, current: false },
 ];
 
@@ -205,7 +206,7 @@ export default function DashboardLayout() {
                 {/* User menu */}
                 <div className="relative">
                   <Link
-                    to="/profile"
+                    to="/settings"
                     className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <span className="sr-only">Open user menu</span>

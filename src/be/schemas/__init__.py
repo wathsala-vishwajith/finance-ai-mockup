@@ -35,6 +35,36 @@ class UserLoginRequest(BaseModel):
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
 
+# User Management Models
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, description="Current password")
+    new_password: str = Field(min_length=8, max_length=128, description="New password")
+    
+    @validator('new_password')
+    def validate_new_password_strength(cls, v):
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"\d", v):
+            raise ValueError("Password must contain at least one number")
+        if not re.search(r"[@$!%*?&]", v):
+            raise ValueError("Password must contain at least one special character (@$!%*?&)")
+        return v
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(min_length=1, description="Current password for confirmation")
+    confirmation: str = Field(description="Must be 'DELETE' to confirm")
+    
+    @validator('confirmation')
+    def validate_confirmation(cls, v):
+        if v != "DELETE":
+            raise ValueError("Confirmation must be exactly 'DELETE'")
+        return v
+
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = Field(None, max_length=100, description="Full name")
+
 # Chat WebSocket Models
 class ChatMessageIn(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
@@ -45,6 +75,32 @@ class ChatMessageOut(BaseModel):
     sender: str  # "user" or "assistant"
     timestamp: datetime
     is_complete: bool = True  # For streaming responses
+
+# Profit Data Models
+class ProfitRecord(BaseModel):
+    id: int
+    company: str
+    year: int
+    month: int
+    profit: float
+    month_name: str = ""
+
+    class Config:
+        from_attributes = True
+
+class ProfitFilters(BaseModel):
+    company: Optional[str] = Field(None, description="Filter by company name")
+    year: Optional[int] = Field(None, ge=2020, le=2030, description="Filter by year")
+    search: Optional[str] = Field(None, max_length=100, description="Search in company name")
+
+class ProfitPage(BaseModel):
+    data: list[ProfitRecord]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
 
 # Chart WebSocket Models
 class ChartSubscribe(BaseModel):
@@ -116,8 +172,14 @@ __all__ = [
     "UserRegisterRequest",
     "UserLoginRequest",
     "TokenRefreshRequest",
+    "ChangePasswordRequest",
+    "DeleteAccountRequest",
+    "UpdateProfileRequest",
     "ChatMessageIn",
     "ChatMessageOut",
+    "ProfitRecord",
+    "ProfitFilters",
+    "ProfitPage",
     "ChartSubscribe",
     "ChartDataPoint",
     "LineChartData",

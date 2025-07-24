@@ -8,7 +8,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from be.core.database import create_db_and_tables, seed_db
-from be.routers import auth, charts, chat
+from be.routers import auth, charts, chat, profits
 from be.core.config import ALLOWED_ORIGINS, MAX_REQUEST_SIZE
 
 
@@ -113,6 +113,7 @@ async def add_security_headers(request: Request, call_next):
 app.include_router(auth.router)
 app.include_router(charts.router)
 app.include_router(chat.router)
+app.include_router(profits.router)
 
 
 # Root endpoint

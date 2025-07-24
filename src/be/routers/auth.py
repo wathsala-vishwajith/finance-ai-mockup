@@ -11,6 +11,9 @@ from be.schemas import (
     UserRegisterRequest, 
     UserLoginRequest, 
     TokenRefreshRequest,
+    ChangePasswordRequest,
+    DeleteAccountRequest,
+    UpdateProfileRequest,
     UserOut, 
     TokenResponse, 
     UserProfileResponse,
@@ -18,6 +21,7 @@ from be.schemas import (
 )
 from be.core.security import (
     hash_password,
+    verify_password,
     authenticate_user,
     create_access_token,
     create_refresh_token,
@@ -211,7 +215,7 @@ async def get_profile(
     
     Requires valid JWT access token in Authorization header.
     """
-    return UserProfileResponse(user=UserOut.from_orm(current_user))
+    return UserProfileResponse(user=UserOut.model_validate(current_user))
 
 
 @router.post(
@@ -240,4 +244,121 @@ async def logout(
             detail="Invalid refresh token"
         )
     
-    return {"detail": "Successfully logged out"} 
+    return {"detail": "Successfully logged out"}
+
+
+@router.put(
+    "/change-password",
+    responses={
+        200: {"description": "Password changed successfully"},
+        400: {"model": ErrorResponse, "description": "Invalid current password"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        422: {"model": ErrorResponse, "description": "Validation Error"}
+    }
+)
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    session: Annotated[Session, Depends(get_session)]
+):
+    """
+    Change user password.
+    
+    - **current_password**: Current password for verification
+    - **new_password**: New password (must meet strength requirements)
+    """
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Check if new password is different from current
+    if verify_password(password_data.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Hash new password and update user
+    new_password_hash = hash_password(password_data.new_password)
+    current_user.password_hash = new_password_hash
+    
+    session.add(current_user)
+    session.commit()
+    
+    return {"detail": "Password changed successfully"}
+
+
+@router.put(
+    "/profile",
+    response_model=UserProfileResponse,
+    responses={
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        422: {"model": ErrorResponse, "description": "Validation Error"}
+    }
+)
+async def update_profile(
+    profile_data: UpdateProfileRequest,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    session: Annotated[Session, Depends(get_session)]
+):
+    """
+    Update user profile information.
+    
+    - **full_name**: Updated full name (optional)
+    
+    Note: Email address cannot be changed for security reasons.
+    """
+    # Update only the full name - email is immutable
+    current_user.full_name = profile_data.full_name
+    
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    
+    return UserProfileResponse(user=UserOut.model_validate(current_user))
+
+
+@router.delete(
+    "/account",
+    responses={
+        200: {"description": "Account deleted successfully"},
+        400: {"model": ErrorResponse, "description": "Invalid password or confirmation"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+        422: {"model": ErrorResponse, "description": "Validation Error"}
+    }
+)
+async def delete_account(
+    delete_data: DeleteAccountRequest,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    session: Annotated[Session, Depends(get_session)]
+):
+    """
+    Delete user account permanently.
+    
+    - **password**: Current password for verification
+    - **confirmation**: Must be exactly 'DELETE' to confirm
+    
+    Warning: This action is irreversible!
+    """
+    # Verify password
+    if not verify_password(delete_data.password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is incorrect"
+        )
+    
+    # Delete user and all related data
+    # First revoke all refresh tokens
+    from be.models import RefreshToken
+    refresh_tokens = session.exec(select(RefreshToken).where(RefreshToken.user_id == current_user.id)).all()
+    for token in refresh_tokens:
+        session.delete(token)
+    
+    # Delete the user
+    session.delete(current_user)
+    session.commit()
+    
+    return {"detail": "Account deleted successfully"} 

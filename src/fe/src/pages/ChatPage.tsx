@@ -98,11 +98,11 @@ const ChatPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full max-h-screen">
-      {/* Header */}
-      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+    <div className="flex flex-col -mt-6 -mx-4 sm:-mx-6 lg:-mx-8" style={{ height: 'calc(100vh - 80px)' }}>
+      {/* Header - Smaller and directly under dashboard header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Chat Assistant</h1>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Chat Assistant</h1>
           <div className="flex items-center space-x-2">
             <div
               className={`w-3 h-3 rounded-full ${
@@ -120,7 +120,7 @@ const ChatPage: React.FC = () => {
         </div>
         
         {error && (
-          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg flex items-center space-x-2">
+          <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg flex items-center space-x-2">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400" />
             <span className="text-sm text-red-800 dark:text-red-200">{error}</span>
           </div>
@@ -128,7 +128,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -173,8 +173,8 @@ const ChatPage: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+      {/* Input Area - At bottom of chat container */}
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-end space-x-3">
           <div className="flex-1">
             <textarea

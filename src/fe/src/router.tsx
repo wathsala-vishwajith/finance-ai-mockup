@@ -8,10 +8,11 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import AuthLayout from "./components/layout/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 import DashboardPage from "./pages/DashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ChatPage from "./pages/ChatPage";
+import DataPage from "./pages/DataPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -49,10 +50,10 @@ const indexRoute = createRoute({
   component: DashboardPage,
 });
 
-const profileRoute = createRoute({
+const settingsRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
-  path: "/profile",
-  component: ProfilePage,
+  path: "/settings",
+  component: SettingsPage,
 });
 
 const analyticsRoute = createRoute({
@@ -67,9 +68,15 @@ const chatRoute = createRoute({
   component: ChatPage,
 });
 
+const dataRoute = createRoute({
+  getParentRoute: () => dashboardLayoutRoute,
+  path: "/data",
+  component: DataPage,
+});
+
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([loginRoute, registerRoute]),
-  dashboardLayoutRoute.addChildren([indexRoute, profileRoute, analyticsRoute, chatRoute])
+  dashboardLayoutRoute.addChildren([indexRoute, settingsRoute, analyticsRoute, chatRoute, dataRoute])
 ]);
 
 export const router = createRouter({
