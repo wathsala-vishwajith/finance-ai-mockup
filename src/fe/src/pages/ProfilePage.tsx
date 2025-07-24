@@ -25,14 +25,14 @@ export default function ProfilePage() {
     }
   }, [accessToken]);
 
-  const { data, isLoading, error } = useQuery<UserProfile>(
-    ["profile"],
-    async () => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
       const res = await api.get<UserProfile>("/auth/me");
       return res.data;
     },
-    { enabled: !!accessToken }
-  );
+    enabled: !!accessToken
+  });
 
   if (isLoading) return <p className="text-gray-700 dark:text-gray-300">Loading…</p>;
   if (error) return <p className="text-red-500">Failed to load profile.</p>;
