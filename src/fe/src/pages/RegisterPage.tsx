@@ -2,7 +2,7 @@ import React from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { z } from "zod";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 const RegisterSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -13,6 +13,8 @@ const RegisterSchema = z.object({
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const navigate = useNavigate();
+  
   const mutation = useMutation({
     mutationFn: (data: {
       username: string;
@@ -20,6 +22,12 @@ export default function RegisterPage() {
       password: string;
       full_name?: string;
     }) => register(data.username, data.email, data.password, data.full_name),
+    onSuccess: () => {
+      // Redirect to login page after successful registration
+      setTimeout(() => {
+        navigate({ to: "/login" });
+      }, 1500); // Small delay to show success message
+    },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
