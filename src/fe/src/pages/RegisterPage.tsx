@@ -2,6 +2,7 @@ import React from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { z } from "zod";
+import { Link } from "@tanstack/react-router";
 
 const RegisterSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -107,9 +108,9 @@ export default function RegisterPage() {
         <button
           type="submit"
           className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded focus:outline-none"
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
         >
-          {mutation.isLoading ? "Registering..." : "Register"}
+          {mutation.isPending ? "Registering..." : "Register"}
         </button>
         {mutation.isError && (
           <p className="text-red-500 text-sm">{(mutation.error as any).message}</p>
@@ -122,7 +123,7 @@ export default function RegisterPage() {
       </form>
 
       <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-        Already have an account? <a href="/login" className="text-blue-600 hover:underline">Login</a>
+        Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
       </p>
     </div>
   );

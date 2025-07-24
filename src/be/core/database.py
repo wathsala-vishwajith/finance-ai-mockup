@@ -4,12 +4,19 @@ import pandas as pd
 from datetime import datetime
 from sqlmodel import SQLModel, create_engine, Session, select
 from passlib.context import CryptContext
+from sqlalchemy.pool import StaticPool
 
 from be.models import User, Profit
 from be.core.config import DATABASE_URL
 
 # Create engine
-engine = create_engine(DATABASE_URL, echo=False)
+engine = create_engine(
+    DATABASE_URL, 
+    echo=False,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+    pool_pre_ping=True
+)
 
 # Password context for hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

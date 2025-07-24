@@ -7,6 +7,9 @@ import App from "./App";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
+import { lazy } from "react";
+
+const HomeRedirect = lazy(() => import("./pages/HomeRedirect"));
 
 const rootRoute = createRootRoute({
   component: App,
@@ -30,7 +33,13 @@ const profileRoute = createRoute({
   component: ProfilePage,
 });
 
-const routeTree = rootRoute.addChildren([loginRoute, registerRoute, profileRoute]);
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  component: HomeRedirect,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, loginRoute, registerRoute, profileRoute]);
 
 export const router = createRouter({
   routeTree,

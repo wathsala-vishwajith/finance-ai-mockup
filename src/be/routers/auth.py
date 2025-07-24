@@ -132,7 +132,7 @@ async def login(
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": str(user.id), "username": user.username},
-        expires_delta=access_token_expires
+        expires=access_token_expires
     )
     
     refresh_token = create_refresh_token(
@@ -182,7 +182,7 @@ async def refresh_token(
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": str(user.id), "username": user.username},
-        expires_delta=access_token_expires
+        expires=access_token_expires
     )
     
     # Optionally rotate refresh token (for enhanced security)

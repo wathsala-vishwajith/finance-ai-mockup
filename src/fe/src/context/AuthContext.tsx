@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { router } from "../router";
 import api from "../lib/api";
 
 interface AuthContextProps {
@@ -27,8 +27,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     () => localStorage.getItem("refresh_token")
   );
 
-  const navigate = useNavigate();
-
   const saveTokens = (access: string, refresh: string) => {
     setAccessToken(access);
     setRefreshToken(refresh);
@@ -39,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (username: string, password: string) => {
     const res = await api.post("/auth/login", { username, password });
     saveTokens(res.data.access_token, res.data.refresh_token);
-    navigate({ to: "/" });
+    router.navigate({ to: "/" });
   };
 
   const register = async (
@@ -49,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     full_name?: string
   ) => {
     await api.post("/auth/register", { username, email, password, full_name });
-    navigate({ to: "/login" });
+    router.navigate({ to: "/login" });
   };
 
   const logout = () => {
@@ -57,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setRefreshToken(null);
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    navigate({ to: "/login" });
+    router.navigate({ to: "/login" });
   };
 
   const refreshAccessToken = async () => {
