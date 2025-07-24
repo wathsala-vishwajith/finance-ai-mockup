@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./src/be
+      dockerfile: Dockerfile
+    container_name: finance-ai-backend-test
+    environment:
+      SECRET_KEY: "test-secret-key"
+      DATABASE_URL: "sqlite:///:memory:"
+    ports:
+      - "8001:8000"
+    networks:
+      - finance-ai-test
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./src/fe
+      dockerfile: Dockerfile
+    container_name: finance-ai-frontend-test
+    ports:
+      - "3001:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - finance-ai-test
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  finance-ai-test:
+    driver: bridge 

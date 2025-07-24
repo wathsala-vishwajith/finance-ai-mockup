@@ -22,6 +22,8 @@ RATE_LIMIT_REFRESH = "20/hour"
 ALLOWED_ORIGINS: List[str] = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://frontend:80",  # Docker container communication
+    "http://localhost:80", # Frontend container port mapping
 ]
 
 # Database Configuration

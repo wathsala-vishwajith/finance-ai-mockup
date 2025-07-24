@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./src/be
+      dockerfile: Dockerfile
+    container_name: finance-ai-backend-dev
+    environment:
+      SECRET_KEY: "dev-secret-key-change-in-production"
+      DATABASE_URL: "sqlite:///:memory:"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/be:/app
+    networks:
+      - finance-ai-network
+    command: uvicorn be.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./src/fe
+      dockerfile: Dockerfile.dev
+    container_name: finance-ai-frontend-dev
+    environment:
+      VITE_API_BASE_URL: "http://localhost:8000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/fe:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - finance-ai-network
+    restart: unless-stopped
+
+networks:
+  finance-ai-network:
+    driver: bridge 
