@@ -13,13 +13,14 @@ on:
 
 env:
   REGISTRY: docker.io
-  BACKEND_IMAGE_NAME: ${{ github.repository }}-backend
-  FRONTEND_IMAGE_NAME: ${{ github.repository }}-frontend
+  # Define the Docker Hub username/organization explicitly
+  DOCKER_NAMESPACE: wathsalavishwajith 
+  BACKEND_IMAGE_NAME: finance-ai-mockup-backend # No need for github.repository here
+  FRONTEND_IMAGE_NAME: finance-ai-mockup-frontend # No need for github.repository here
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # Only run if the test workflow succeeded, or if this is a tag push
     if: ${{ github.event.workflow_run.conclusion == 'success' || startsWith(github.ref, 'refs/tags/v') }}
     permissions:
       contents: read
@@ -36,14 +37,15 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }} # This should be wathsalavishwajith
+          password: ${{ secrets.DOCKER_PASSWORD }} # This should be your Docker Hub PAT
 
       - name: Extract metadata for backend
         id: backend-meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
+          # Use the DOCKER_NAMESPACE for the image path
+          images: ${{ env.REGISTRY }}/${{ env.DOCKER_NAMESPACE }}/${{ env.BACKEND_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -55,7 +57,8 @@ jobs:
         id: frontend-meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+          # Use the DOCKER_NAMESPACE for the image path
+          images: ${{ env.REGISTRY }}/${{ env.DOCKER_NAMESPACE }}/${{ env.FRONTEND_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -97,6 +100,7 @@ jobs:
       - name: Deploy to production
         run: |
           echo "Deploying to production environment..."
-          echo "Backend image: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:${{ github.ref_name }}"
-          echo "Frontend image: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ github.ref_name }}"
+          # Update these to reflect the correct Docker Hub paths
+          echo "Backend image: ${{ env.REGISTRY }}/${{ env.DOCKER_NAMESPACE }}/${{ env.BACKEND_IMAGE_NAME }}:${{ github.ref_name }}"
+          echo "Frontend image: ${{ env.REGISTRY }}/${{ env.DOCKER_NAMESPACE }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ github.ref_name }}"
           # Add your production deployment commands here
