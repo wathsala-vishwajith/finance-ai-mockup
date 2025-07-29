@@ -15,6 +15,17 @@ on:
       - 'src/**'
       - 'docker-compose*.yml'
       - 'Dockerfile*'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - quick
+        - health-only
 
 jobs:
   docker-compose-test:
@@ -42,15 +53,15 @@ jobs:
           VITE_API_BASE_URL=http://localhost:8000
           EOF
 
-      - name: Build services with docker-compose
+      - name: Build services with docker compose
         run: |
           echo "Building all services..."
-          docker-compose build --no-cache
+          docker compose build --no-cache
           
       - name: Start services
         run: |
           echo "Starting services in detached mode..."
-          docker-compose up -d
+          docker compose up -d
           
       - name: Wait for services to be ready
         run: |
@@ -100,7 +111,7 @@ jobs:
           echo "Checking if frontend can reach backend through Docker network..."
           
           # Test that services can communicate within Docker network
-          docker-compose exec -T backend python -c "
+          docker compose exec -T backend python -c "
           import requests
           try:
               response = requests.get('http://localhost:8000/health', timeout=5)
@@ -116,7 +127,7 @@ jobs:
         run: |
           echo "=== Testing Service Resilience ==="
           echo "Restarting backend service..."
-          docker-compose restart backend
+          docker compose restart backend
           
           echo "Waiting for backend to recover..."
           sleep 10
@@ -132,17 +143,17 @@ jobs:
         if: failure()
         run: |
           echo "=== Backend Logs ==="
-          docker-compose logs backend
+          docker compose logs backend
           echo "=== Frontend Logs ==="
-          docker-compose logs frontend
+          docker compose logs frontend
           echo "=== Container Status ==="
-          docker-compose ps
+          docker compose ps
 
       - name: Cleanup
         if: always()
         run: |
           echo "Cleaning up test environment..."
-          docker-compose down --volumes --remove-orphans
+          docker compose down --volumes --remove-orphans
           docker system prune -f
 
   integration-test:
@@ -170,11 +181,11 @@ jobs:
           EOF
 
           # Start services for integration testing
-          docker-compose up -d
+          docker compose up -d
           
           # Wait for services
           timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
-          timeout 60 bash -c 'until curl -f http://localhost:3000/login; do sleep 2; done'
+          timeout 60 bash -c 'until curl -f http://localhost:3000/; do sleep 2; done'
           
           echo "✅ Integration test environment ready"
           
@@ -187,4 +198,4 @@ jobs:
       - name: Cleanup integration test
         if: always()
         run: |
-          docker-compose down --volumes --remove-orphans 
+          docker compose down --volumes --remove-orphans 
