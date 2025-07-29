@@ -33,7 +33,7 @@ The easiest way to run the application is using Docker Compose:
    ```
 
 3. **Access the application:**
-   - **Frontend**: http://localhost:3000
+   - **Frontend**: http://localhost:3000/login
    - **Backend API**: http://localhost:8000
    - **API Documentation**: http://localhost:8000/docs
 
