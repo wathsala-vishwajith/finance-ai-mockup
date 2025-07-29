@@ -225,6 +225,15 @@ docker-compose logs frontend
 docker-compose logs -f
 ```
 
+## CI/CD Pipeline
+
+This project includes automated Docker image building and deployment using GitHub Actions. See [DOCKER_CI_SETUP.md](DOCKER_CI_SETUP.md) for complete setup instructions.
+
+**Quick Start:**
+- Images are automatically built and pushed on every commit to `main`
+- Tagged releases trigger production deployments
+- Pull requests are built and tested automatically
+
 ## Contributing
 
 1. Fork the repository
