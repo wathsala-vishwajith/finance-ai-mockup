@@ -87,22 +87,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-staging:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.event.workflow_run.head_branch == 'main'
-    environment: staging
-    
-    steps:
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment..."
-          echo "Backend image: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:main"
-          echo "Frontend image: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:main"
-          # Add your deployment commands here
-          # For example, you might trigger a webhook to your staging server
-          # or update a Kubernetes deployment
-
   deploy-production:
     needs: build-and-push
     runs-on: ubuntu-latest
