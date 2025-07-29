@@ -227,12 +227,20 @@ docker-compose logs -f
 
 ## CI/CD Pipeline
 
-This project includes automated Docker image building and deployment using GitHub Actions. See [DOCKER_CI_SETUP.md](DOCKER_CI_SETUP.md) for complete setup instructions.
+This project includes a two-stage automated pipeline using GitHub Actions:
 
-**Quick Start:**
-- Images are automatically built and pushed on every commit to `main`
-- Tagged releases trigger production deployments
-- Pull requests are built and tested automatically
+1. **🧪 Testing Stage**: Docker Compose build validation and health checks
+2. **🚀 Deploy Stage**: Multi-platform image building and registry push
+
+See [DOCKER_CI_SETUP.md](DOCKER_CI_SETUP.md) for complete setup instructions.
+
+**Features:**
+- ✅ Comprehensive docker-compose testing before any deployments
+- ✅ Health checks for all services and endpoints  
+- ✅ Service resilience and restart testing
+- ✅ Multi-platform Docker images (AMD64 + ARM64)
+- ✅ Automated staging and production deployments
+- ✅ Pull request validation without registry pushes
 
 ## Contributing
 

@@ -4,12 +4,44 @@ This guide explains how to set up automated Docker image building and pushing us
 
 ## Overview
 
-Two GitHub Actions workflows have been created:
+A two-stage CI/CD pipeline has been created with these GitHub Actions workflows:
 
-1. **`docker-build-push.yml`** - Pushes to Docker Hub
-2. **`docker-build-push-ghcr.yml`** - Pushes to GitHub Container Registry (GHCR)
+**Stage 1 - Testing (Always runs first):**
+- **`docker-test.yml`** - Tests docker-compose build and runs health checks
 
-Choose the one that best fits your needs, or use both if you want redundancy.
+**Stage 2 - Build & Push (Only runs after tests pass):**
+- **`docker-build-push.yml`** - Builds and pushes to Docker Hub
+
+This ensures your application is working properly before pushing images to the registry.
+
+## Pipeline Flow
+
+```mermaid
+graph TD
+    A["🔄 Code Push/PR"] --> B["📋 Docker Compose Test"]
+    
+    B --> C{{"🧪 Build & Test<br/>docker-compose.yml"}}
+    C --> D{{"🏥 Health Checks<br/>Backend: /health<br/>Frontend: /"}}
+    D --> E{{"🔄 Resilience Tests<br/>Service Restart<br/>Resource Check"}}
+    E --> F{{"🧪 Integration Tests<br/>Auth Endpoints<br/>API Validation"}}
+    
+    F --> G{{"✅ Tests Pass?"}}
+    G -->|"❌ Fail"| H["🚫 Stop Pipeline<br/>Show Logs"]
+    G -->|"✅ Pass"| I["🏗️ Build & Push Images"]
+    
+    I --> J{{"🐳 Multi-Platform Build<br/>AMD64 + ARM64"}}
+    J --> K{{"📤 Push to Registry<br/>Docker Hub"}}
+    K --> L{{"🚀 Deploy Staging<br/>(main branch)"}}
+    L --> M{{"🎯 Deploy Production<br/>(version tags)"}}
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style G fill:#fff3e0
+    style H fill:#ffebee
+    style I fill:#e8f5e8
+    style L fill:#fff8e1
+    style M fill:#e3f2fd
+```
 
 ## Quick Setup
 
@@ -30,12 +62,29 @@ Choose the one that best fits your needs, or use both if you want redundancy.
 
 ## How It Works
 
+### Pipeline Structure
+
+**Stage 1: Docker Compose Test (`docker-test.yml`)**
+- Triggers on: Push to `main`, Pull requests, or changes to Docker files
+- Builds services using `docker-compose build`
+- Starts services and waits for them to be ready
+- Runs comprehensive health checks on all endpoints
+- Tests service restart resilience
+- Runs integration tests (for PRs)
+
+**Stage 2: Build & Push (`docker-build-push.yml`)**
+- Triggers only AFTER Stage 1 completes successfully
+- Builds optimized multi-platform images
+- Pushes to Docker Hub registry
+- Deploys to staging/production environments
+
 ### Triggers
 
-The workflows trigger on:
-- **Push to `main` branch**: Builds and pushes images tagged as `latest` and `main`
-- **Git tags** (e.g., `v1.0.0`): Builds and pushes images with version tags
-- **Pull requests**: Builds images and tests them locally (doesn't push)
+- **Push to `main` branch**: 
+  1. Runs docker-compose tests ✅
+  2. If tests pass → Builds and pushes images tagged as `latest` and `main`
+- **Git tags** (e.g., `v1.0.0`): Directly builds and pushes images with version tags
+- **Pull requests**: Only runs docker-compose tests (doesn't push images)
 
 ### Images Created
 
@@ -51,7 +100,36 @@ Images are tagged with:
 - `main` (for main branch)
 - `v1.0.0`, `v1.0`, `v1` (for version tags)
 - `main-abc1234` (branch + commit SHA)
-- `pr-123` (for pull requests)
+
+## Testing Pipeline Details
+
+The `docker-test.yml` workflow performs comprehensive testing:
+
+### 🏗️ **Build Testing**
+- Builds all services using your existing `docker-compose.yml`
+- Tests with clean builds (no cache) to catch dependency issues
+- Verifies both frontend and backend containers start successfully
+
+### 🔍 **Health Checks**
+- **Backend**: Tests `/health` endpoint returns 200
+- **Frontend**: Verifies main page loads successfully
+- **API Endpoints**: Tests available API routes (profits, charts, etc.)
+- **Cross-Service**: Validates services can communicate within Docker network
+
+### 🔄 **Resilience Testing**
+- **Service Restart**: Tests backend recovery after restart
+- **Resource Monitoring**: Checks CPU and memory usage
+- **Network Connectivity**: Validates internal Docker networking
+
+### 🧪 **Integration Tests**
+- Runs existing test files (`test_auth_endpoints.py`)
+- Tests end-to-end workflows
+- Validates authentication endpoints
+
+### 📊 **Failure Debugging**
+- Automatically shows container logs on failure
+- Displays container status and resource usage
+- Provides detailed error messages
 
 ## Using the Images
 
