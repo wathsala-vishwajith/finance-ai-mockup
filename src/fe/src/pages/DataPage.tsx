@@ -2,9 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
   flexRender,
   createColumnHelper,
   SortingState,
@@ -19,7 +16,6 @@ import {
   ChevronUpDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
@@ -143,7 +139,7 @@ const DataPage: React.FC = () => {
   const table = useReactTable({
     data: profitData?.data ?? [],
     columns,
-    pageCount: profitData?.total_pages ?? 0,
+    rowCount: profitData?.total ?? 0,
     state: {
       pagination,
       sorting,
